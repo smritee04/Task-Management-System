@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block page_title %}{{ profile_user.get_full_name|default:profile_user.username }}{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+    <a href="{% url 'accounts:user_update' profile_user.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+</div>
+
+<div class="detail-grid">
+    <div>
+        <div class="detail-item-label">Username</div>
+        <div class="detail-item-value">{{ profile_user.username }}</div>
+    </div>
+    <div>
+        <div class="detail-item-label">Email</div>
+        <div class="detail-item-value">{{ profile_user.email }}</div>
+    </div>
+    <div>
+        <div class="detail-item-label">Role</div>
+        <div class="detail-item-value">{{ profile_user.get_role_display }}</div>
+    </div>
+    <div>
+        <div class="detail-item-label">Supervisor</div>
+        <div class="detail-item-value">{{ profile_user.supervisor|default:"—" }}</div>
+    </div>
+    <div>
+        <div class="detail-item-label">Domain</div>
+        <div class="detail-item-value">{{ profile_user.domain|default:"—" }}</div>
+    </div>
+    <div>
+        <div class="detail-item-label">Status</div>
+        <div class="detail-item-value">
+            {% if profile_user.is_active %}<span style="color:var(--green);">Active</span>{% else %}<span style="color:var(--red);">Inactive</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+{% if profile_user.role == 'intern' %}
+<div class="section-title">Assigned Tasks</div>
+<div class="table-container">
+    <table class="data-table">
+        <thead><tr><th>Title</th><th>Status</th><th>Deadline</th></tr></thead>
+        <tbody>
+        {% for task in profile_user.tasks_assigned.all %}
+            <tr><td><a href="{{ task.get_absolute_url }}">{{ task.title }}</a></td><td>{{ task.get_status_display }}</td><td>{{ task.deadline|date:"M d, Y" }}</td></tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="3">No tasks yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if profile_user.pk != request.user.pk %}
+<form method="post" action="{% url 'accounts:user_delete' profile_user.pk %}" style="margin-top:20px;" onsubmit="return confirm('Delete this user permanently? This cannot be undone.');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger btn-sm">Delete User</button>
+</form>
+{% endif %}
+{% endblock %}

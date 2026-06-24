@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load tms_badges %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_subtitle %}Organization-wide overview{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:20px;">
+    <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">＋ New Task</a>
+    <a href="{% url 'accounts:user_create' %}" class="btn btn-secondary">＋ New User</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="--stat-color: var(--accent);">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">{{ total_users }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--blue);">
+        <div class="stat-icon">📋</div>
+        <div class="stat-number">{{ total_tasks }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--yellow);">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">{{ tasks_in_progress }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--green);">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">{{ tasks_completed }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+</div>
+
+<div class="section-title">Recent Tasks</div>
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr><th>Title</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Deadline</th></tr>
+        </thead>
+        <tbody>
+        {% for task in recent_tasks %}
+            <tr>
+                <td><a href="{{ task.get_absolute_url }}">{{ task.title }}</a></td>
+                <td>{{ task.assigned_to }}</td>
+                <td><span class="badge-priority {{ task.priority|priority_badge_class }}">{{ task.get_priority_display }}</span></td>
+                <td><span class="badge-status {{ task.status|status_badge_class }}">{{ task.get_status_display }}</span></td>
+                <td>{{ task.deadline|date:"M d, Y" }}</td>
+            </tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="5">No tasks yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

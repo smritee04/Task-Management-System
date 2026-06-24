@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load tms_badges %}
+{% block page_title %}Supervisor Dashboard{% endblock %}
+{% block page_subtitle %}Your team's progress{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; margin-bottom:20px;">
+    <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">＋ Assign Task</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="--stat-color: var(--accent);">
+        <div class="stat-icon">👥</div>
+        <div class="stat-number">{{ interns.count }}</div>
+        <div class="stat-label">My Interns</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--yellow);">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">{{ pending_review }}</div>
+        <div class="stat-label">Pending Review</div>
+    </div>
+</div>
+
+<div class="two-col">
+    <div>
+        <div class="section-title">My Interns</div>
+        <div class="table-container">
+            <table class="data-table">
+                <tbody>
+                {% for intern in interns %}
+                    <tr><td><a href="{{ intern.get_absolute_url }}">{{ intern.get_full_name|default:intern.username }}</a></td></tr>
+                {% empty %}
+                    <tr class="empty-row"><td>No interns assigned yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-title">Recent Tasks</div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead><tr><th>Title</th><th>Intern</th><th>Status</th><th>Approved</th></tr></thead>
+                <tbody>
+                {% for task in tasks %}
+                    <tr>
+                        <td><a href="{{ task.get_absolute_url }}">{{ task.title }}</a></td>
+                        <td>{{ task.assigned_to }}</td>
+                        <td><span class="badge-status {{ task.status|status_badge_class }}">{{ task.get_status_display }}</span></td>
+                        <td>{% if task.supervisor_approved %}<span style="color:var(--green);">Yes</span>{% else %}<span style="color:var(--text3);">No</span>{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr class="empty-row"><td colspan="4">No tasks yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+/*
+ * Admin changelist layout override.
+ *
+ * Stock Django admin already lays the filter panel out beside the results
+ * table using flexbox (#changelist { display:flex; ... }), and only drops
+ * to a stacked layout below a 767px viewport. If you're seeing the filter
+ * panel pushed underneath the table on a normal desktop window, it's
+ * almost always stale/cached CSS (an old collected static file, or the
+ * browser caching a previous admin.css) rather than anything about your
+ * data. This file re-asserts the intended layout with !important so it
+ * wins regardless of what else got loaded, and only relaxes to a stacked
+ * layout on genuinely narrow (phone-width) screens.
+ */
+
+#changelist {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 24px;
+}
+
+#changelist .changelist-form-container {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    float: none !important;
+    width: auto !important;
+}
+
+#changelist .changelist-form-container .results {
+    overflow-x: auto;
+}
+
+#changelist-filter {
+    flex: 0 0 260px !important;
+    width: 260px !important;
+    order: 1 !important;
+    float: none !important;
+    margin: 0 !important;
+    position: static !important;
+}
+
+/* Only stack on genuinely phone-sized screens. */
+@media (max-width: 600px) {
+    #changelist {
+        flex-direction: column !important;
+    }
+    #changelist-filter {
+        width: 100% !important;
+        flex: 1 1 auto !important;
+        margin-top: 20px !important;
+    }
+}

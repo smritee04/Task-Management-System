@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block page_title %}{{ project.name }}{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; gap:12px; flex-wrap:wrap;">
+    <span class="role-pill">{{ project.get_status_display }}</span>
+    {% if can_manage %}
+    <a href="{% url 'tasks:project_update' project.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+    {% endif %}
+</div>
+
+<div class="card" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px;">
+    <p style="color:var(--text2); margin-bottom:16px;">{{ project.description|linebreaks|default:"No description provided." }}</p>
+    <div class="detail-grid" style="margin-bottom:0;">
+        <div>
+            <div class="detail-item-label">Created By</div>
+            <div class="detail-item-value">{{ project.created_by|default:"—" }}</div>
+        </div>
+        <div>
+            <div class="detail-item-label">Start Date</div>
+            <div class="detail-item-value">{{ project.start_date|date:"M d, Y"|default:"—" }}</div>
+        </div>
+        <div>
+            <div class="detail-item-label">Deadline</div>
+            <div class="detail-item-value">{{ project.deadline|date:"M d, Y"|default:"—" }}</div>
+        </div>
+        <div>
+            <div class="detail-item-label">Tasks Completed</div>
+            <div class="detail-item-value">{{ project.completed_task_count }}/{{ project.task_count }}</div>
+        </div>
+    </div>
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <div class="section-title">Tasks in this Project</div>
+    {% if can_manage %}
+    <a href="{% url 'tasks:task_create' %}" class="btn btn-primary btn-sm">＋ New Task</a>
+    {% endif %}
+</div>
+<div class="table-container">
+    <table class="data-table">
+        <thead><tr><th>Title</th><th>Assigned To</th><th>Status</th><th>Deadline</th></tr></thead>
+        <tbody>
+        {% for task in tasks %}
+            <tr>
+                <td><a href="{{ task.get_absolute_url }}">{{ task.title }}</a></td>
+                <td>{{ task.assigned_to }}</td>
+                <td>{{ task.get_status_display }}</td>
+                <td>{{ task.deadline|date:"M d, Y" }}</td>
+            </tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="4">No tasks linked to this project yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

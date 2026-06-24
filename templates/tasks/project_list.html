@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_title %}Projects{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; gap:8px; margin-bottom:16px;">
+    <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary">✅ Tasks</a>
+    {% if can_manage %}
+    <a href="{% url 'tasks:project_create' %}" class="btn btn-primary">＋ New Project</a>
+    {% endif %}
+</div>
+
+<form method="get" class="filter-bar">
+    <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" name="q" value="{{ query }}" class="search-input" placeholder="Search projects" style="padding-left:36px;">
+    </div>
+    <select name="status" class="form-select" style="width:auto;">
+        <option value="">All Statuses</option>
+        {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button class="btn btn-secondary" type="submit">Filter</button>
+</form>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead><tr><th>Name</th><th>Status</th><th>Tasks</th><th>Deadline</th><th>Created By</th></tr></thead>
+        <tbody>
+        {% for project in projects %}
+            <tr>
+                <td><a href="{{ project.get_absolute_url }}">{{ project.name }}</a></td>
+                <td><span class="role-pill">{{ project.get_status_display }}</span></td>
+                <td>{{ project.completed_task_count }}/{{ project.task_count }}</td>
+                <td>{{ project.deadline|date:"M d, Y"|default:"—" }}</td>
+                <td>{{ project.created_by|default:"—" }}</td>
+            </tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="5">No projects found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% include "partials/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block page_title %}Performance Report{% endblock %}
+{% block page_subtitle %}Average score: {{ avg_score }}/100{% endblock %}
+{% block content %}
+<div class="table-container">
+    <table class="data-table">
+        <thead><tr><th>Intern</th><th>Evaluator</th><th>Period</th><th>Score</th></tr></thead>
+        <tbody>
+        {% for e in evaluations %}
+            <tr>
+                <td>{{ e.intern }}</td>
+                <td>{{ e.evaluator }}</td>
+                <td>{{ e.period_start }} – {{ e.period_end }}</td>
+                <td>{{ e.score }}/100</td>
+            </tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="4">No evaluations yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

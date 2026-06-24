@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load tms_badges %}
+{% block page_title %}My Dashboard{% endblock %}
+{% block page_subtitle %}Your assigned tasks{% endblock %}
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card" style="--stat-color: var(--text2);">
+        <div class="stat-icon">🆕</div>
+        <div class="stat-number">{{ pending_count }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--blue);">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">{{ in_progress_count }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--green);">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">{{ completed_count }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+</div>
+
+<div class="section-title">My Tasks</div>
+<div class="tasks-grid">
+    {% for task in my_tasks %}
+    <div class="task-card">
+        <div class="task-card-header">
+            <a href="{{ task.get_absolute_url }}" class="task-title">{{ task.title }}</a>
+            <span class="badge-priority {{ task.priority|priority_badge_class }}">{{ task.get_priority_display }}</span>
+        </div>
+        <div class="task-card-body">
+            <p class="task-desc">{{ task.description|default:"No description." }}</p>
+            <div class="date-progress">
+                <div class="task-meta">
+                    <span class="task-meta-item">📅 {{ task.deadline|date:"M d, Y H:i" }}{% if task.is_overdue %} · <span style="color:var(--red);">Overdue</span>{% endif %}</span>
+                </div>
+                <div class="progress-wrap"><div class="progress-fill" style="width: {{ task.progress_percent }}%"></div></div>
+            </div>
+        </div>
+        <div class="task-card-footer">
+            <span class="badge-status {{ task.status|status_badge_class }}">{{ task.get_status_display }}</span>
+            <span style="font-size:12px; color:var(--text3);">{{ task.progress_percent }}%</span>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">No tasks assigned yet</div>
+        <div class="empty-state-text">Check back soon — your supervisor will assign tasks here.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

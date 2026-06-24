@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Task Management System{% endblock %}</title>
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="app-wrapper">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">📋</div>
+            <div class="logo-text">TMS</div>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="user-info">
+                <div class="user-avatar">{{ user.username|slice:":1"|upper }}</div>
+                <div>
+                    <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="user-role">{{ user.get_role_display }}</div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Main</div>
+            <a class="nav-link {% if request.resolver_match.namespace == 'accounts' and 'dashboard' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'accounts:post_login_redirect' %}">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a class="nav-link {% if request.resolver_match.namespace == 'tasks' and request.resolver_match.url_name in 'task_list,task_create,task_detail,task_update' %}active{% endif %}" href="{% url 'tasks:task_list' %}">
+                <span class="nav-icon">✅</span> Tasks
+            </a>
+            <a class="nav-link {% if request.resolver_match.namespace == 'tasks' and 'project' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'tasks:project_list' %}">
+                <span class="nav-icon">📁</span> Projects
+            </a>
+
+            {% if user.is_superuser or user.role == 'admin' or user.role == 'supervisor' %}
+            <div class="nav-section-label">Team</div>
+            <a class="nav-link {% if request.resolver_match.namespace == 'reports' %}active{% endif %}" href="{% url 'reports:overview' %}">
+                <span class="nav-icon">📊</span> Reports
+            </a>
+            <a class="nav-link {% if request.resolver_match.namespace == 'feedback' %}active{% endif %}" href="{% url 'feedback:evaluation_list' %}">
+                <span class="nav-icon">⭐</span> Evaluations
+            </a>
+            {% else %}
+            <div class="nav-section-label">Me</div>
+            <a class="nav-link {% if request.resolver_match.namespace == 'feedback' %}active{% endif %}" href="{% url 'feedback:my_evaluations' %}">
+                <span class="nav-icon">⭐</span> My Evaluations
+            </a>
+            {% endif %}
+
+            {% if user.is_superuser or user.role == 'admin' %}
+            <div class="nav-section-label">Admin</div>
+            <a class="nav-link {% if request.resolver_match.namespace == 'accounts' and request.resolver_match.url_name in 'user_list,user_create,user_detail,user_update' %}active{% endif %}" href="{% url 'accounts:user_list' %}">
+                <span class="nav-icon">👥</span> Users
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <a href="{% url 'accounts:profile' %}" class="nav-link"><span class="nav-icon">⚙️</span> Profile</a>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="nav-link" style="width:100%; text-align:left; background:none; border:none; cursor:pointer; font-family:inherit;">
+                    <span class="nav-icon">🚪</span> Log out
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div style="display:flex; align-items:center; gap: 12px;">
+                <button class="mobile-toggle" id="mobileToggle">☰</button>
+                <div>
+                    <div class="topbar-title">{% block page_title %}Task Management System{% endblock %}</div>
+                    <div class="topbar-subtitle">{% block page_subtitle %}{% endblock %}</div>
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <div class="dropdown-wrap">
+                    <button class="icon-btn" id="notifBtn">
+                        🔔
+                        {% if unread_notification_count %}
+                        <span class="notif-dot">{{ unread_notification_count }}</span>
+                        {% endif %}
+                    </button>
+                    <div class="dropdown-panel" id="notifPanel">
+                        <div class="dropdown-header">Notifications</div>
+                        <div class="dropdown-list">
+                            {% for n in latest_notifications %}
+                            <a class="dropdown-item-link {% if not n.is_read %}unread{% endif %}" href="{% url 'notifications:mark_read' n.pk %}">
+                                {{ n.message|truncatechars:60 }}
+                                <div class="dropdown-item-time">{{ n.created_at|timesince }} ago</div>
+                            </a>
+                            {% empty %}
+                            <div class="dropdown-item-link" style="color: var(--text3);">No notifications yet.</div>
+                            {% endfor %}
+                        </div>
+                        <div class="dropdown-footer"><a href="{% url 'notifications:notification_list' %}">View all</a></div>
+                    </div>
+                </div>
+
+                <div class="dropdown-wrap">
+                    <button class="user-menu-btn" id="userBtn">
+                        <div class="user-avatar" style="width:32px;height:32px;font-size:12px;">{{ user.username|slice:":1"|upper }}</div>
+                        <span class="role-pill">{{ user.get_role_display }}</span>
+                    </button>
+                    <div class="dropdown-panel" id="userPanel">
+                        <a class="dropdown-item-link" href="{% url 'accounts:profile' %}">Profile</a>
+                        <a class="dropdown-item-link" href="{% url 'accounts:change_password' %}">Change Password</a>
+                        <form method="post" action="{% url 'accounts:logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item-link" style="width:100%; text-align:left; background:none; border:none; cursor:pointer; font-family:inherit;">Log out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-body">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}success{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDropdown(btnId, panelId) {
+    const btn = document.getElementById(btnId);
+    const panel = document.getElementById(panelId);
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.dropdown-panel.open').forEach(p => { if (p !== panel) p.classList.remove('open'); });
+        panel.classList.toggle('open');
+    });
+}
+toggleDropdown('notifBtn', 'notifPanel');
+toggleDropdown('userBtn', 'userPanel');
+document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown-panel.open').forEach(p => p.classList.remove('open'));
+});
+
+const mobileToggle = document.getElementById('mobileToggle');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+    });
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+    });
+}
+</script>
+{% else %}
+<div class="page-body">
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}success{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% block guest_content %}{% endblock %}
+</div>
+{% endif %}
+</body>
+</html>

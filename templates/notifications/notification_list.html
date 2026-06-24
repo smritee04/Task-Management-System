@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block page_title %}Notifications{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+    <form method="post" action="{% url 'notifications:mark_all_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary btn-sm">Mark all as read</button>
+    </form>
+</div>
+
+<div class="table-container">
+    {% for n in notifications %}
+    <a href="{% url 'notifications:mark_read' n.pk %}" class="dropdown-item-link {% if not n.is_read %}unread{% endif %}" style="display:block; padding:16px;">
+        {{ n.message }}
+        <div class="dropdown-item-time">{{ n.created_at|timesince }} ago</div>
+    </a>
+    {% empty %}
+    <div class="empty-row" style="padding:48px;">No notifications.</div>
+    {% endfor %}
+</div>
+{% include "partials/pagination.html" %}
+{% endblock %}

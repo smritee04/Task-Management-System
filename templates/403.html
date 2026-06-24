@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Access Denied - TMS{% endblock %}
+{% block content %}
+<div class="empty-state">
+    <div class="empty-state-icon">🔒</div>
+    <div class="empty-state-title">Access Denied</div>
+    <div class="empty-state-text">You do not have permission to view this page.</div>
+    <a href="{% url 'accounts:post_login_redirect' %}" class="btn btn-primary" style="margin-top:16px;">Go to Dashboard</a>
+</div>
+{% endblock %}
+{% block guest_content %}
+<div class="auth-page">
+    <div class="empty-state">
+        <div class="empty-state-icon">🔒</div>
+        <div class="empty-state-title">Access Denied</div>
+        <div class="empty-state-text">You do not have permission to view this page.</div>
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary" style="margin-top:16px;">Sign In</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block page_title %}Project Overview Report{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+    <a href="{% url 'reports:export_tasks_csv' %}" class="btn btn-secondary">⬇ Export CSV</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="--stat-color: var(--accent);">
+        <div class="stat-icon">📋</div>
+        <div class="stat-number">{{ total_tasks }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card" style="--stat-color: var(--red);">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-number">{{ overdue_count }}</div>
+        <div class="stat-label">Overdue</div>
+    </div>
+</div>
+
+<div class="two-col" style="margin-bottom:24px;">
+    <div>
+        <div class="section-title">By Status</div>
+        <div class="table-container">
+            {% for row in by_status %}
+            <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
+                <span style="font-size:13px; text-transform:capitalize;">{{ row.status|cut:"_"|title }}</span>
+                <span class="role-pill">{{ row.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <div class="section-title">By Priority</div>
+        <div class="table-container">
+            {% for row in by_priority %}
+            <div style="padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
+                <span style="font-size:13px; text-transform:capitalize;">{{ row.priority }}</span>
+                <span class="role-pill">{{ row.count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="section-title">Per-Intern Completion</div>
+<div class="table-container">
+    <table class="data-table">
+        <thead><tr><th>Intern</th><th>Total Tasks</th><th>Completed</th><th>Completion Rate</th><th>Avg Progress</th></tr></thead>
+        <tbody>
+        {% for row in per_intern %}
+            <tr>
+                <td>{{ row.intern }}</td>
+                <td>{{ row.total }}</td>
+                <td>{{ row.completed }}</td>
+                <td>{{ row.completion_rate }}%</td>
+                <td>{{ row.avg_progress|floatformat:1 }}%</td>
+            </tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="5">No interns to report on.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+<p style="font-size:12px; color:var(--text3); margin-top:12px;">Generated {{ generated_at|date:"M d, Y H:i" }}</p>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block page_title %}Performance Evaluations{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+    <a href="{% url 'feedback:evaluation_create' %}" class="btn btn-primary">＋ New Evaluation</a>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead><tr><th>Intern</th><th>Evaluator</th><th>Period</th><th>Score</th></tr></thead>
+        <tbody>
+        {% for e in evaluations %}
+            <tr>
+                <td>{{ e.intern }}</td>
+                <td>{{ e.evaluator }}</td>
+                <td>{{ e.period_start }} – {{ e.period_end }}</td>
+                <td><span class="role-pill">{{ e.score }}/100</span></td>
+            </tr>
+        {% empty %}
+            <tr class="empty-row"><td colspan="4">No evaluations recorded yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include "partials/pagination.html" %}
+{% endblock %}

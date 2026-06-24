@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load tms_badges %}
+{% block page_title %}{{ task.title }}{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px; gap:12px; flex-wrap:wrap;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <span class="badge-priority {{ task.priority|priority_badge_class }}">{{ task.get_priority_display }} Priority</span>
+        <span class="badge-status {{ task.status|status_badge_class }}">{{ task.get_status_display }}</span>
+        {% if task.supervisor_approved %}<span class="badge-status badge-complete">Approved</span>{% endif %}
+        {% if task.is_overdue %}<span class="badge-priority badge-urgent">Overdue</span>{% endif %}
+    </div>
+    {% if can_edit %}
+    <a href="{% url 'tasks:task_update' task.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+    {% endif %}
+</div>
+
+<div class="two-col">
+    <div>
+        <div class="card" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px;">
+            <p style="color:var(--text2); margin-bottom:16px;">{{ task.description|linebreaks|default:"No description provided." }}</p>
+            <div class="detail-grid" style="margin-bottom:0;">
+                <div>
+                    <div class="detail-item-label">Project</div>
+                    <div class="detail-item-value">{% if task.project %}<a href="{{ task.project.get_absolute_url }}">{{ task.project.name }}</a>{% else %}—{% endif %}</div>
+                </div>
+                <div>
+                    <div class="detail-item-label">Assigned To</div>
+                    <div class="detail-item-value">{{ task.assigned_to }}</div>
+                </div>
+                <div>
+                    <div class="detail-item-label">Created By</div>
+                    <div class="detail-item-value">{{ task.created_by }}</div>
+                </div>
+                <div>
+                    <div class="detail-item-label">Deadline</div>
+                    <div class="detail-item-value">{{ task.deadline|date:"M d, Y H:i" }}</div>
+                </div>
+                <div>
+                    <div class="detail-item-label">Progress</div>
+                    <div class="detail-item-value">{{ task.progress_percent }}%</div>
+                    <div class="progress-wrap"><div class="progress-fill" style="width: {{ task.progress_percent }}%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        {% if can_update_progress %}
+        <div style="margin-bottom:20px;">
+            <div class="section-title">Update Progress</div>
+            <div class="form-card" style="max-width:none; padding:20px;">
+                <form method="post" action="{% url 'tasks:submit_progress' task.pk %}">
+                    {% csrf_token %}
+                    {% for field in progress_form %}
+                        {% include "partials/form_field.html" with field=field %}
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary btn-sm">Submit Update</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if can_approve and task.status == 'completed' and not task.supervisor_approved %}
+        <form method="post" action="{% url 'tasks:approve_task' task.pk %}" style="margin-bottom:20px;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">✓ Approve Task</button>
+        </form>
+        {% endif %}
+
+        <div class="section-title">Progress History</div>
+        <div class="table-container" style="margin-bottom:0;">
+            {% for update in progress_updates %}
+            <div style="padding:14px 16px; border-bottom:1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong style="font-size:13px;">{{ update.submitted_by }}</strong>
+                    <span style="font-size:12px; color:var(--text3);">{{ update.created_at|date:"M d, Y H:i" }}</span>
+                </div>
+                <div style="font-size:12px; color:var(--text2); margin:4px 0;">{{ update.progress_percent }}% — {{ update.get_new_status_display }}</div>
+                <div style="font-size:13px;">{{ update.note }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-row" style="padding:32px;">No updates yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Feedback</div>
+        <div class="table-container" style="margin-bottom:16px;">
+            {% for item in feedback_items %}
+            <div style="padding:14px 16px; border-bottom:1px solid var(--border);">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong style="font-size:13px;">{{ item.author }}</strong>
+                    <span style="font-size:11px; color:var(--text3);">{{ item.created_at|date:"M d, Y" }}</span>
+                </div>
+                {% if item.rating %}<div style="font-size:11px; color:var(--accent2); margin:3px 0;">{{ item.get_rating_display }}</div>{% endif %}
+                <div style="font-size:13px;">{{ item.comment }}</div>
+            </div>
+            {% empty %}
+            <div class="empty-row" style="padding:24px;">No feedback yet.</div>
+            {% endfor %}
+        </div>
+
+        {% if user.is_superuser or user.role == 'admin' or user.role == 'supervisor' %}
+        <div class="form-card" style="max-width:none; padding:18px;">
+            <form method="post" action="{% url 'feedback:add_feedback' task.pk %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea name="comment" class="form-control" rows="3" placeholder="Leave feedback..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <select name="rating" class="form-select">
+                        <option value="0">No rating</option>
+                        <option value="1">Needs Improvement</option>
+                        <option value="2">Satisfactory</option>
+                        <option value="3">Good</option>
+                        <option value="4">Excellent</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;">Submit Feedback</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
